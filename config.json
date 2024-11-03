@@ -1,0 +1,19 @@
+{
+    "networks": {
+        "sepolia": {
+            "rpc_url": "https://sepolia.infura.io/v3/YOUR_INFURA_PROJECT_ID",
+            "token_contract": "TOKEN_CONTRACT_ADDRESS",
+            "chain_id": 11155111
+        },
+        "base_sepolia": {
+            "rpc_url": "https://base-sepolia.rpc.url",
+            "token_contract": "BASE_TOKEN_CONTRACT_ADDRESS",
+            "chain_id": 11155112
+        },
+        "optimism_sepolia": {
+            "rpc_url": "https://optimism-sepolia.rpc.url",
+            "token_contract": "OPTIMISM_TOKEN_CONTRACT_ADDRESS",
+            "chain_id": 11155113
+        }
+    }
+}
