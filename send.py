@@ -1,4 +1,5 @@
 import json
+import time
 from web3 import Web3
 
 # Load konfigurasi
@@ -28,7 +29,7 @@ if 0 <= network_choice_index < len(network_options):
     web3 = Web3(Web3.HTTPProvider(rpc_url))
 
     # Cek koneksi
-    if not web3.isConnected():
+    if not web3.is_connected():
         print("Tidak terhubung ke jaringan")
         exit()
 
@@ -62,25 +63,110 @@ if 0 <= network_choice_index < len(network_options):
         print(f"{index}. {address}")
 
     # Mengambil saldo ETH di wallet pengirim
-    balance = web3.eth.getBalance(sender_address)
-    eth_balance = web3.fromWei(balance, 'ether')
+    balance = web3.eth.get_balance(sender_address)
+    eth_balance = web3.from_wei(balance, 'ether')
     print(f"\nSaldo ETH di wallet pengirim: {eth_balance} ETH")
 
     # Menanyakan pilihan pengiriman
-    choice = input("\nApakah Anda ingin mengirim ke seluruh penerima (ketik 'semua') atau memilih penerima tertentu (ketik 'pilih')? (ketik 'keluar' untuk membatalkan) ").strip().lower()
+    print("\n=======================================")
+    print("          Pilih Opsi Pengiriman")
+    print("=======================================")
+    print("1. Kirim ke semua penerima")
+    print("2. Kirim ke alamat tertentu")
+    print("3. Keluar")
 
-    if choice == 'keluar':
+    choice = input("Silakan pilih opsi (masukkan nomor): ").strip()
+
+    if choice == '3':
         print("Pengiriman dibatalkan.")
         exit()
-    elif choice == 'pilih':
+    elif choice == '2':
         selected_indices = input("Anda memilih untuk mengirim ke penerima tertentu. Silakan pilih nomor penerima (pisahkan dengan koma jika lebih dari satu): ")
         selected_indices = [int(i.strip()) - 1 for i in selected_indices.split(',')]
         selected_addresses = [recipient_addresses[i] for i in selected_indices]
         print(f"Alamat penerima yang dipilih: {selected_addresses}")
-        # Lanjutkan ke proses pengiriman menggunakan selected_addresses
-    elif choice == 'semua':
+
+        amount = input("Masukkan jumlah token yang akan dikirim ke setiap penerima: ")
+        amount = web3.to_wei(float(amount), 'ether')  # Mengonversi jumlah ke Wei
+
+        for recipient in selected_addresses:
+            # Dapatkan nonce terbaru sebelum mengirim
+            nonce = web3.eth.get_transaction_count(sender_address)
+
+            transaction = {
+                'to': recipient,
+                'value': amount,
+                'gas': 2000000,  # Tentukan gas limit sesuai kebutuhan
+                'gasPrice': web3.eth.gas_price,  # Gunakan harga gas saat ini
+                'nonce': nonce,
+                'chainId': chain_id
+            }
+
+            # Tanda tangani transaksi
+            signed_txn = web3.eth.account.sign_transaction(transaction, private_key)
+
+            # Kirim transaksi
+            while True:  # Ulangi hingga transaksi berhasil
+                try:
+                    txn_hash = web3.eth.send_raw_transaction(signed_txn.raw_transaction)
+                    print(f'Transaksi berhasil dikirim ke {recipient}. Hash: {txn_hash.hex()}')
+                    time.sleep(5)  # Tunggu selama 5 detik sebelum mengirim transaksi berikutnya
+                    break  # Keluar dari loop jika transaksi berhasil
+                except ValueError as e:
+                    if 'replacement transaction underpriced' in str(e):
+                        # Naikkan harga gas jika ada kesalahan
+                        transaction['gasPrice'] = int(transaction['gasPrice'] * 1.1)  # Naikkan 10%
+                        signed_txn = web3.eth.account.sign_transaction(transaction, private_key)  # Tanda tangani ulang transaksi
+                    elif 'nonce too low' in str(e):
+                        # Jika nonce terlalu rendah, ambil nonce terbaru
+                        nonce = web3.eth.get_transaction_count(sender_address)
+                        transaction['nonce'] = nonce
+                        signed_txn = web3.eth.account.sign_transaction(transaction, private_key)  # Tanda tangani ulang transaksi
+                    else:
+                        print(f'Error mengirim transaksi ke {recipient}: {e}')
+                        break
+
+    elif choice == '1':
         print("Anda memilih untuk mengirim ke semua penerima.")
-        # Lanjutkan ke proses pengiriman menggunakan recipient_addresses
+        amount = input("Masukkan jumlah token yang akan dikirim ke setiap penerima: ")
+        amount = web3.to_wei(float(amount), 'ether')  # Mengonversi jumlah ke Wei
+
+        for recipient in recipient_addresses:
+            # Dapatkan nonce terbaru sebelum mengirim
+            nonce = web3.eth.get_transaction_count(sender_address)
+
+            transaction = {
+                'to': recipient,
+                'value': amount,
+                'gas': 2000000,  # Tentukan gas limit sesuai kebutuhan
+                'gasPrice': web3.eth.gas_price,  # Gunakan harga gas saat ini
+                'nonce': nonce,
+                'chainId': chain_id
+            }
+
+            # Tanda tangani transaksi
+            signed_txn = web3.eth.account.sign_transaction(transaction, private_key)
+
+            # Kirim transaksi
+            while True:  # Ulangi hingga transaksi berhasil
+                try:
+                    txn_hash = web3.eth.send_raw_transaction(signed_txn.raw_transaction)
+                    print(f'Transaksi berhasil dikirim ke {recipient}. Hash: {txn_hash.hex()}')
+                    time.sleep(5)  # Tunggu selama 5 detik sebelum mengirim transaksi berikutnya
+                    break  # Keluar dari loop jika transaksi berhasil
+                except ValueError as e:
+                    if 'replacement transaction underpriced' in str(e):
+                        # Naikkan harga gas jika ada kesalahan
+                        transaction['gasPrice'] = int(transaction['gasPrice'] * 1.1)  # Naikkan 10%
+                        signed_txn = web3.eth.account.sign_transaction(transaction, private_key)  # Tanda tangani ulang transaksi
+                    elif 'nonce too low' in str(e):
+                        # Jika nonce terlalu rendah, ambil nonce terbaru
+                        nonce = web3.eth.get_transaction_count(sender_address)
+                        transaction['nonce'] = nonce
+                        signed_txn = web3.eth.account.sign_transaction(transaction, private_key)  # Tanda tangani ulang transaksi
+                    else:
+                        print(f'Error mengirim transaksi ke {recipient}: {e}')
+                        break
     else:
         print("Pilihan tidak dikenali, silakan coba lagi.")
 else:
