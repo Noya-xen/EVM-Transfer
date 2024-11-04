@@ -138,7 +138,7 @@ if 0 <= network_choice_index < len(network_options):
             transaction = {
                 'to': recipient,
                 'value': amount,
-                'gas': 2000000,  # Tentukan gas limit sesuai kebutuhan
+                'gas': 3000000,  # Tentukan gas limit sesuai kebutuhan
                 'gasPrice': web3.eth.gas_price,  # Gunakan harga gas saat ini
                 'nonce': nonce,
                 'chainId': chain_id
