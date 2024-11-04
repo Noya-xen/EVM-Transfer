@@ -14,6 +14,11 @@
             "rpc_url": "https://optimism-sepolia.rpc.url",
             "token_contract": "OPTIMISM_TOKEN_CONTRACT_ADDRESS",
             "chain_id": 11155113
+        },
+        "Fhenix Helium": {
+            "rpc_url": "https://api.helium.fhenix.zone",
+            "token_contract": "0xF902517Acd004694B50e17e6DA12bf24eBF1b302",
+            "chain_id": 8008135
         }
     }
 }
